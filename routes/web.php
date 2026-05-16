@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KunjunganController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PasienController;
+use App\Http\Controllers\RekamMedisController;
 use App\Models\Kunjungan;
 
 /*
@@ -44,12 +45,14 @@ Route::middleware(['auth'])->group(function () {
     // Hak Akses Dokter
     Route::middleware(['role:admin'])->prefix('dokter')->group(function () {
         Route::get('daftar-antrian', [DokterController::class, 'getKunjungan'])->name('daftar-kunjungan');
-
-        // Grouping Rekam Medis
-        Route::prefix('rekam-medis/')->group(function () {
-            Route::get('/', [DokterController::class, 'getRekamMedisPasien'])->name('rekam.medis.index');
-            Route::post('/', [DokterController::class, 'postRekamMedisPasien'])->name('rekam.medis.store');
-        });
+    });
+    // Grouping Rekam Medis
+    Route::prefix('rekam-medis/')->group(function () {
+        Route::get('/', [RekamMedisController::class, 'index'])->name('rekamMedis.index');
+        Route::get('/{id}/create', [RekamMedisController::class, 'create'])->name('rekamMedis.create');
+        Route::post('/', [RekamMedisController::class, 'store'])->name('rekamMedis.store');
+        Route::patch('/{id}', [RekamMedisController::class, 'update'])->name('rekamMedis.patch');
+        Route::patch('/{id}', [RekamMedisController::class, 'destroy'])->name('rekamMedis.destroy');
     });
 
     // Grouping Kunjungan (antrian)
