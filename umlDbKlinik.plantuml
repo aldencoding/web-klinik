@@ -1,0 +1,143 @@
+@startuml
+' =======================================
+'     ERD Sistem Informasi Klinik
+'     By: Bang Farel ❤️
+'     Versi Rapihkan
+' =======================================
+
+entity "users" as users {
+  * id : number <<PK>>
+  --
+  role : enum(admin, dokter, pasien, petugas, apoteker) 
+  name : string
+  email : string
+  email_verified_at : date
+  password : string
+  remember_token : string
+  status : enum(0, 1)
+  created_at : date
+  updated_at : date
+}
+
+entity "pasiens" as pasiens {
+  * id : number <<PK>>
+  --
+  user_id : number <<FK>>
+  nik : string
+  no_bpjs : string
+  tanggal_lahir : date
+  jenis_kelamin : enum(pria, wanita)
+  alamat : text
+  no_telepon : string
+  created_at : date
+  updated_at : date
+}
+
+entity "dokters" as dokters {
+  * id : number <<PK>>
+  --
+  user_id : number <<FK>>
+  poli_id : number <<FK>> 
+  jadwal_id : number <<FK>>
+  spesialis : string
+  no_telepon : string
+  alamat : text
+  created_at : date
+  updated_at : date
+}
+
+entity "poli" as poli {
+  * id : number <<PK>>
+  --
+  nama : string
+  deskripsi : text
+}
+
+entity "jadwal_dokters" as jadwal_dokters {
+  * id : number <<PK>>
+  --
+  dokter_id : number <<FK>>
+  hari : string
+  jam_mulai : string
+  jam_selesai : string
+  created_at : date
+  updated_at : date
+}
+
+entity "kunjungans" as kunjungans {
+  * id : number <<PK>>
+  --
+  dokter_id : number <<FK>>
+  pasien_id : number <<FK>>
+  poli : varchar
+  keluhan : text
+  no_antrian : string
+  status_antrian : enum(menunggu, dipanggil, menunggu_obat, selesai)
+  created_at : date
+  updated_at : date
+}
+
+entity "rekam_medis" as rekam_medis {
+  * id : number <<PK>>
+  --
+  kunjungan_id : number <<FK>>
+  pasien_id : number <<FK>>
+  dokter_id : number <<FK>>
+  keluhan : text
+  riwayat_penyakit : text
+  diagnosa : text
+  resep : text
+  status : enum(menunggu, selesai, dibatalkan)
+  created_at : date
+  updated_at : date
+}
+
+entity "pembayarans" as pembayarans {
+  * id : number <<PK>>
+  --
+  kunjungan_id : number <<FK>>
+  total_biaya : decimal
+  metode_pembayaran : enum(tunai, transfer, qris)
+  status_pembayaran : enum(menunggu_pembayaran, lunas)
+  created_at : date
+  updated_at : date
+}
+
+entity "obats" as obats {
+  * id : number <<PK>>
+  --
+  nama_obat : string
+  stok : integer
+  kategori : enum(sirup, tablet, salep)
+  harga : decimal
+  expired_date : date
+}
+
+entity "resep_obats" as resep_obats {
+  * id : number <<PK>>
+  --
+  rekam_medis_id : number <<FK>>
+  obat_id : number <<FK>>
+  jumlah : integer
+  dosis : text
+  cara_pakai : text
+}
+
+' =========================
+'   RELATIONSHIPS
+' =========================
+
+users ||--o{ pasiens : memiliki >
+users ||--o{ dokters : memiliki >
+poli ||--o{ dokters : melayani >
+dokters ||--o{ jadwal_dokters : memiliki >
+pasiens ||--o{ kunjungans : melakukan >
+dokters ||--o{ kunjungans : melayani >
+kunjungans ||--o{ rekam_medis : menghasilkan >
+pasiens ||--o{ rekam_medis : memiliki >
+dokters ||--o{ rekam_medis : menangani >
+rekam_medis ||--o{ pembayarans : menghasilkan >
+rekam_medis ||--o{ resep_obats : memiliki >
+resep_obats }o--|| obats : berisi >
+
+@enduml
