@@ -23,10 +23,10 @@
                 </div>
 
                 <div class="form-group my-2">
-                    <label for="layanan">Layanan</label>
-                    <select name="jenis_layanan" class="form-select" id="layanan">
+                    <label for="poli">Poli</label>
+                    <select name="poli" class="form-select" id="poli">
                         <option selected value="" selected>Pilih Layanan</option>
-                        @foreach ($layanan as $index => $item )
+                        @foreach ($poli as $index => $item )
                         <option value="{{ $item->id }}">
                             {{ $item->nama }}
                         </option>
@@ -69,6 +69,20 @@
                     <span class="text-danger">{{$message}}</span>
                     @enderror
                 </div>
+
+                <div class="form-group my-2">
+                    <label class="form-label" for="password">Password</label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        name="password"
+                        id="password"
+                        placeholder="Rekomendasi menggunakan kombinasi">
+                    @error('password')
+                    <span class="text-danger">{{$message}}</span>
+                    @enderror
+                </div>
+
                 <div class="d-flex justify-content-end my-4">
                     <button class="btn btn-primary" type="submit">Simpan</button>
                 </div>

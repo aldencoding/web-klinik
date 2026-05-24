@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class DokterController extends Controller
@@ -47,40 +48,46 @@ class DokterController extends Controller
     }
     public function index()
     {
-        $dokter = Dokter::with(['user', 'layanan'])->get();
+        $dokter = Dokter::with(['user'])->get();
+        $poli = Poli::get();
         // ini adalah fungsi dari sweet alert
+        // dd($dokter);
         $title = 'Hapus data Dokter!';
         $text = 'Apakah anda yakin?';
         confirmDelete($title, $text);
-        return view('dokter.index', compact(['dokter']));
+        return view('dokter.index', compact(['dokter', 'poli']));
     }
     public function create()
     {
-        $layanan = Poli::get();
-        return view('dokter.create', compact('layanan'));
+        $poli = Poli::get();
+        return view('dokter.create', compact(['poli']));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama_dokter' => 'required|string|max:255',
-            'jenis_layanan' => 'required|exists:layanans,id',
+            'password' => 'required',
+            'poli' => 'required|exists:poli,id',
             'jenis_kelamin' => 'required|in:pria,wanita',
             'no_telepon' => 'required|regex:/^[0-9]+$/|min:10|max:15',
             'alamat' => 'required|string|max:255',
         ]);
 
+        // Hash Password
+        $dokterPassword = Hash::make($request->password);
         try {
             DB::beginTransaction();
 
             $user = User::create([
-                'nama' => $validated['nama_dokter'],
+                'name' => $validated['nama_dokter'],
+                'password' => $dokterPassword,
                 'role' => 'dokter'
             ]);
 
             Dokter::create([
                 'user_id' => $user->id,
-                'layanan_id' => $validated['jenis_layanan'],
+                'poli_id' => $validated['poli'],
                 'jenis_kelamin' => $validated['jenis_kelamin'],
                 'no_telepon' => $validated['no_telepon'],
                 'alamat' => $validated['alamat'],

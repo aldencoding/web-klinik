@@ -139,10 +139,10 @@
                         return;
                     }
                     const data = response.data;
-                    console.log(data.user.id);
+                    console.log('Pasien: ' + data.id);
                     $('#nikMessage').text('NIK terdaftar').attr('class', 'text-success');
                     $('#nikMessage').show();
-                    $('#userID').val(data.user.id);
+                    $('#userID').val(data.id);
                     $('#namaPasien').val(data.user.name).attr('class', function(index, currentValue) {
                         return currentValue + ' text-success';
                     });

@@ -6,7 +6,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h4>Data Dokter</h4>
                 <div>
-                    <a href="{{ route('dokter.create') }}" class="btn btn-primary">Tambah Data</a>
+                    <a href="{{ route('dokter.create') }}" class="btn btn-primary">Tambah Dokter</a>
                 </div>
             </div>
         </div>
@@ -16,8 +16,9 @@
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
-                        <th>Layanan</th>
+                        <th>Poli</th>
                         <th>No Telp</th>
+                        <th>Alamat</th>
                         <th>Opsi</th>
                     </tr>
                 </thead>
@@ -25,9 +26,10 @@
                     @foreach ($dokter as $index => $item )
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td>{{ $item->user->nama}}</td>
-                        <td>{{ $item->layanan?->nama ? $item->layanan?->nama :'-'}}</td>
-                        <td>{{ $item->no_telepon}}</td>
+                        <td>{{ $item->user->name?? '-'}}</td>
+                        <td>{{ $item->poli?->nama?? '-'}}</td>
+                        <td>{{ $item->no_telepon?? '-'}}</td>
+                        <td>{{ $item->alamat?? '-'}}</td>
                         <td class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Aksi

@@ -72,7 +72,10 @@ class RekamMedisController extends Controller
         ]);
         try {
             DB::transaction(function () use ($validated) {
-                $rekamMedis = RekamMedis::where('kunjungan_id', $validated['kunjungan_id'])->firstOrFail();
+                $rekamMedis = RekamMedis::where('kunjungan_id', $validated['kunjungan_id'])->first();
+                if (!$rekamMedis || $rekamMedis == null) {
+                    throw new Exception('Data Kunjungan tidak ditemukan');
+                }
                 $rekamMedis->update([
                     'keluhan' => $validated['keluhan'],
                     'riwayat_penyakit' => $validated['riwayat_penyakit'],
@@ -84,7 +87,7 @@ class RekamMedisController extends Controller
             Alert::success('Sukses', 'Data Rekam Medis Berhasil ditambahkan');
             return redirect()->route('rekamMedis.index');
         } catch (Exception $e) {
-            dd($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 

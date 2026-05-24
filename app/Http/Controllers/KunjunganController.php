@@ -35,23 +35,24 @@ class KunjunganController extends Controller
     public function index()
     {
         // $today = Carbon::today()->toDateString();
-        $kunjungan = Kunjungan::with(['pasien', 'dokter'])->get();
+        // 1. Ambil data kunjungan sekaligus dengan data pasien dan user-nya (Nested Eager Loading)
+        $data = Kunjungan::with(['pasien.user', 'dokter'])
+            ->whereDate('created_at', Carbon::today())
+            ->get();
 
-        $data = [];
-        foreach ($kunjungan as $index => $k) {
-
-            $pasien = Pasien::where('id', $k->pasien->id)->first();
-            $namaPasien = User::where('id', $pasien->user_id)->first()->name;
-            $data[$index] = [
-                'no_antrian' => $k->no_antrian,
-                'nama_pasien' => $namaPasien,
-                'poli' => $k->poli,
-                'jaminan' => $k->jaminan,
-                'status' => $k->status_antrian,
-            ];
-        }
+        // 2. Ubah datanya menjadi array menggunakan map() bawaan Laravel Collections
+        // $data = $kunjungan->map(function ($k) {
+        //     return [
+        //         'no_antrian'  => $k->no_antrian,
+        //         'dokter' => $k->dokter->user->name, // Mengambil langsung lewat relasi
+        //         'pasien' => $k->pasien->user->name, // Mengambil langsung lewat relasi
+        //         'poli'        => $k->poli,
+        //         'jaminan'     => $k->jaminan,
+        //         'keluhan'     => $k->jaminan,
+        //         'status'      => $k->status_antrian,
+        //     ];
+        // })->toArray();
         // dd($data);
-        //ambil nama pasien
 
         return view('kunjungan.index', compact('data'));
     }
@@ -64,6 +65,7 @@ class KunjunganController extends Controller
     public function store(Request $request)
     {
         //property
+        // dd($request->all());
         $today = Carbon::today()->toDateString();
 
         $validated = $request->validate([
@@ -77,7 +79,7 @@ class KunjunganController extends Controller
 
         //query
         $pasien = Pasien::where("nik", $validated['nik'])
-            ->get()->first();
+            ->get()->firstOrFail();
         if (!$pasien) {
             Alert::error("error", "NIK tidak terdaftar");
             return redirect()
@@ -110,6 +112,7 @@ class KunjunganController extends Controller
                     'status_antrian' => 'Menunggu',
                 ]);
             }
+            Alert::success('Sukses', 'Data Kunjungan Berhasil ditambahkan');
             return redirect()->back();
         }
         // Asumsi $lastNumber->no_antrian adalah "A001"
@@ -142,8 +145,8 @@ class KunjunganController extends Controller
             'status_antrian' => 'Menunggu',
         ]);
 
-        Alert::success('Sukses', 'Data Dokter Berhasil Ditambahkan');
-        return redirect()->route('dokter.index');
+        Alert::success('Sukses', 'Data Kunjungan Berhasil Ditambahkan');
+        return redirect()->back();
     }
 
     public function show()

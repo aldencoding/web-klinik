@@ -33,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('index');
 
     // Hak Akses Admin
-    Route::middleware(['role:admin'])->prefix('admin')->group(function () {
+    Route::middleware(['role:admin'])->group(function () {
         Route::get('dokter/jadwal', [DokterController::class, 'getJadwal'])->name('dokter.jadwal');
         Route::resource('dokter', DokterController::class);
         Route::resource('pasien', PasienController::class);

@@ -10,12 +10,12 @@ class Kunjungan extends Model
     use HasFactory;
 
     protected $fillable = [
+        'no_antrian',
         'dokter_id',
         'pasien_id',
         'poli',
         'jaminan',
         'keluhan',
-        'no_antrian',
         'status_antrian'
     ];
 

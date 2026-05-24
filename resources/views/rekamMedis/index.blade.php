@@ -4,7 +4,7 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h4>Daftar Rekam Medis</h4>
+                <h4>Daftar Catatan Medis</h4>
             </div>
         </div>
         <div class="card-body">
