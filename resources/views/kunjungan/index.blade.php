@@ -21,7 +21,7 @@
                         <th>Jaminan</th>
                         <th>keluhan</th>
                         <th>Status</th>
-                        <th>Opsi</th>
+                        <!-- <th>Opsi</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -34,9 +34,9 @@
                         <td>{{ $item->jaminan?? '-' }}</td>
                         <td>{{ $item->keluhan?? '-' }}</td>
                         <td>{{ $item->status_antrian?? '-' }}</td>
-                        <td>
+                        <!-- <td>
                             <a class="text text-primary" href="{{ route('rekamMedis.create', $item->pasien->id) }}">Layani</a>
-                        </td>
+                        </td> -->
                     </tr>
                     @endforeach
                 </tbody>

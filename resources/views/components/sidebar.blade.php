@@ -23,7 +23,7 @@
                 <li class="pc-item">
                     <a href="{{ route('rekamMedis.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-clipboard-list"></i></span>
-                        <span class="pc-mtext">Data Rekam Medis</span>
+                        <span class="pc-mtext">Tangani Pasien</span>
                     </a>
                 </li>
 

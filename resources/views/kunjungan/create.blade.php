@@ -17,36 +17,20 @@
             @endif
             <form action="{{ route('kunjungan.store') }}" method="post">
                 @csrf
+                <input type="text" hidden>
                 <div class="form-group">
-                    <label class="form-label" for="nik">NIK</label>
-                    <input
-                        class="form-control"
-                        type="number"
-                        name="nik"
-                        value="{{ old('nik') }}"
-                        maxlength="16"
-                        id="nikPasien">
-                    <span class="text-danger" id="searchNikMessage"></span>
+                    <label for="selectPasien" class="form-label">Silahkan Cari Nama Pasien:</label>
+                    <select class="form-select"
+                        id="selectPasien"
+                        name="pasien_id">
+                        <option value="" selected></option>
+                        @foreach($pasiens as $pasien)
+                        <option value="{{ $pasien->id }}">{{ $pasien->user->name?? '-' }}</option>
+                        @endforeach
+                    </select>
+                    <span id='pasienMessage' class='text-danger'></span>
                 </div>
 
-                <div class="form-group text-end">
-                    <input class="d-none" id="userID" name="pasien_id" type="text">
-                    <button type="button" class="btn btn-primary" id="cariNikBtn">Cari NIK</button>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="nama">Nama Pasien</label>
-                    <input
-                        class="form-control"
-                        type="text"
-                        placeholder="Silahkan Cari NIK dari Pasien"
-                        readonly
-                        name="pasien"
-                        value="{{ old('nama_pasien') }}"
-                        maxlength="255"
-                        id="namaPasien">
-
-                </div>
 
                 <div class="form-group">
                     <label class="form-label" for="tanggal_lahir_pasien">Tanggal Lahir</label>
@@ -111,55 +95,97 @@
 </div>
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#nikMessage').hide();
-        let table = new DataTable('#table');
-        //hidden tag
+    $('#selectPasien').on('change', function() {
 
-        $('#cariNikBtn').on('click', function() {
-            console.log('gw diklik');
-            console.log($('#nikPasien').val())
-            let nik = $('#nikPasien').val();
-            if (!nik) {
-                alert('NIK wajib di isi');
-                return;
-            }
+        let pasienId = $(this).val();
+        console.log(pasienId);
 
-            $.ajax({
-                url: '{{route("kunjungan.nik")}}',
-                type: 'GET',
-                data: {
-                    nik: $('#nikPasien').val()
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log(response);
-                    if (response.status == "fail") {
-                        alert("NIK tidak terdaftar");
-                        return;
-                    }
-                    const data = response.data;
-                    console.log('Pasien: ' + data.id);
-                    $('#nikMessage').text('NIK terdaftar').attr('class', 'text-success');
-                    $('#nikMessage').show();
-                    $('#userID').val(data.id);
-                    $('#namaPasien').val(data.user.name).attr('class', function(index, currentValue) {
-                        return currentValue + ' text-success';
-                    });
-                    $('#tanggalLahirPasien').val(data.tanggal_lahir).attr('class', function(index, currentValue) {
-                        return currentValue + ' text-success';
-                    });
-                    $('#jenisKelaminPasien').val(data.jenis_kelamin).attr('class', function(index, currentValue) {
-                        return currentValue + ' text-success';
-                    });
-                    alert("NIK Berhasil Ditemukan");
-                },
-                error: function(xhr) {
-                    console.log('error');
-                    alert(xhr.responseJSON?.message);
+        if (!pasienId) {
+            $('#pasienMessage')
+                .text('Pasien tidak terdaftar')
+                .show();
+            return;
+        }
+
+        $.ajax({
+            url: '/get-pasien/' + pasienId,
+            type: 'POST',
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+
+                if (response.status === 'fail') {
+                    $('#pasienMessage')
+                        .text('Pasien tidak terdaftar')
+                        .show();
+
+                    $('#selectPasien').val(null).trigger('change.select2');
+                    return;
                 }
-            });
+
+                const data = response.data;
+
+                $('#userID').val(data.id);
+                $('#namaPasien').val(data.user?.name ?? '').addClass('text-success');
+                $('#tanggalLahirPasien').val(data.tanggal_lahir).addClass('text-success');
+                $('#jenisKelaminPasien').val(data.jenis_kelamin).addClass('text-success');
+            },
+            error: function(xhr) {
+                console.error(xhr);
+            }
         });
+
+    });
+
+    let table = new DataTable('#table');
+    //hidden tag
+
+    $('#cariNikBtn').on('click', function() {
+        console.log('gw diklik');
+        console.log($('#nikPasien').val())
+        let nik = $('#nikPasien').val();
+        if (!nik) {
+            alert('NIK wajib di isi');
+            return;
+        }
+
+        // $.ajax({
+        //     url: '',
+        //     type: 'GET',
+        //     data: {
+        //         nik: $('#nikPasien').val()
+        //     },
+        //     dataType: 'json',
+        //     success: function(response) {
+        //         console.log(response);
+        //         if (response.status == "fail") {
+        //             alert("NIK tidak terdaftar");
+        //             return;
+        //         }
+        //         const data = response.data;
+        //         console.log('Pasien: ' + data.id);
+        //         $('#nikMessage').text('NIK terdaftar').attr('class', 'text-success');
+        //         $('#nikMessage').show();
+        //         $('#userID').val(data.id);
+        //         $('#namaPasien').val(data.user.name).attr('class', function(index, currentValue) {
+        //             return currentValue + ' text-success';
+        //         });
+        //         $('#tanggalLahirPasien').val(data.tanggal_lahir).attr('class', function(index, currentValue) {
+        //             return currentValue + ' text-success';
+        //         });
+        //         $('#jenisKelaminPasien').val(data.jenis_kelamin).attr('class', function(index, currentValue) {
+        //             return currentValue + ' text-success';
+        //         });
+        //         alert("NIK Berhasil Ditemukan");
+        //     },
+        //     error: function(xhr) {
+        //         console.log('error');
+        //         alert(xhr.responseJSON?.message);
+        //     }
+        // });
+        // });
 
     });
 </script>

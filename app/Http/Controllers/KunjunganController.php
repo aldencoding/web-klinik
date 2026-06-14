@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Pasien;
 use App\Models\Kunjungan;
+use App\Models\RekamMedis;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str as SupportStr;
@@ -15,20 +16,34 @@ class KunjunganController extends Controller
     private function generateNomorKunjungan() {}
 
     //keperluan dari JQUERY
-    public function getNikPasien(Request $request)
+    public function getPasien($id)
     {
-        $validated = $request->validate(['nik' => 'required']);
-        $result = Pasien::with('user')->where('nik', $validated['nik'])->first();
+        // return response()->json(['data' => $request->all()]);
+        // $validated = $request->validate([
+        //     'user_id' => 'required'
+        // ]);
+
+        if (!$id) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'ID Pasien tidak ditemukan'
+            ]);
+        }
+
+        $result = Pasien::with('user')
+            ->where('id', $id)
+            ->first();
+
         if (!$result) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'Nik tidak terdaftar'
+                'message' => 'Pasien tidak terdaftar'
             ]);
         }
 
         return response()->json([
             'status' => 'Succes',
-            'message' => 'Nik terdaftar',
+            'message' => 'Pasien terdaftar',
             'data' =>  $result
         ]);
     }
@@ -59,32 +74,37 @@ class KunjunganController extends Controller
 
     public function create()
     {
-        return view('kunjungan.create');
+        $pasiens = Pasien::with(['user'])
+            ->whereHas('user', function ($query) {
+                $query->where('role', '=', 'pasien');
+            })
+            ->get();
+        return view('kunjungan.create', compact(['pasiens']));
     }
 
     public function store(Request $request)
     {
-        //property
-        // dd($request->all());
+
         $today = Carbon::today()->toDateString();
 
         $validated = $request->validate([
-            'nik' => 'required',
             // 'pasien' => 'required',
+            // 'pasien_id' => 'required',
+            // 'nik' => 'required',
             'pasien_id' => 'required',
             'poli' => 'required',
             'jaminan' => 'required',
             'keluhan' => 'required',
         ]);
 
-        //query
-        $pasien = Pasien::where("nik", $validated['nik'])
-            ->get()->firstOrFail();
-        if (!$pasien) {
-            Alert::error("error", "NIK tidak terdaftar");
-            return redirect()
-                ->back();
-        }
+        //query nik sudah tidak dipakai, diganti dengan id pasien
+        // $pasien = Pasien::where("nik", $validated['nik'])
+        //     ->get()->firstOrFail();
+        // if (!$pasien) {
+        //     Alert::error("error", "NIK tidak terdaftar");
+        //     return redirect()
+        //         ->back();
+        // }
         $lastNumber = Kunjungan::whereDate("created_at", $today)
             ->where("poli", $validated['poli'])
             ->orderByDesc("no_antrian")->first();
@@ -92,7 +112,7 @@ class KunjunganController extends Controller
         // no antrian
         if (!$lastNumber) {
             if ($validated['poli'] == 'Gigi') {
-                Kunjungan::create([
+                $kunjungan = Kunjungan::create([
                     'dokter_id' => 2,
                     'pasien_id' =>  $validated['pasien_id'],
                     'poli' =>  $validated['poli'],
@@ -101,8 +121,16 @@ class KunjunganController extends Controller
                     'no_antrian' => 'G001',
                     'status_antrian' => 'Menunggu',
                 ]);
+
+                RekamMedis::create([
+                    'kunjungan_id' => $kunjungan->id,
+                    'pasien_id' => $kunjungan->pasien_id,
+                    'dokter_id' => $kunjungan->dokter_id,
+                    'status' => 'menunggu'
+
+                ]);
             } elseif ($validated['poli'] == 'Umum') {
-                Kunjungan::create([
+                $kunjungan = Kunjungan::create([
                     'dokter_id' => 1,
                     'pasien_id' =>  $validated['pasien_id'],
                     'poli' =>  $validated['poli'],
@@ -111,8 +139,16 @@ class KunjunganController extends Controller
                     'no_antrian' => 'U001',
                     'status_antrian' => 'Menunggu',
                 ]);
+
+                RekamMedis::create([
+                    'kunjungan_id' => $kunjungan->id,
+                    'pasien_id' => $kunjungan->pasien_id,
+                    'dokter_id' => $kunjungan->dokter_id,
+                    'status' => 'menunggu'
+
+                ]);
             }
-            Alert::success('Sukses', 'Data Kunjungan Berhasil ditambahkan');
+            Alert::success('Sukses', 'Pasien berhasil di Daftarkan');
             return redirect()->back();
         }
         // Asumsi $lastNumber->no_antrian adalah "A001"
@@ -135,7 +171,7 @@ class KunjunganController extends Controller
 
         // Hasil: "A002"
 
-        Kunjungan::create([
+        $kunjungan = Kunjungan::create([
             'dokter_id' => $dokterId,
             'pasien_id' =>  $validated['pasien_id'],
             'poli' =>  $validated['poli'],
@@ -145,7 +181,14 @@ class KunjunganController extends Controller
             'status_antrian' => 'Menunggu',
         ]);
 
-        Alert::success('Sukses', 'Data Kunjungan Berhasil Ditambahkan');
+        RekamMedis::create([
+            'kunjungan_id' => $kunjungan->id,
+            'pasien_id' => $kunjungan->pasien_id,
+            'dokter_id' => $kunjungan->dokter_id,
+            'status' => 'menunggu'
+        ]);
+
+        Alert::success('Sukses', 'Pasien berhasil di Daftarkan');
         return redirect()->back();
     }
 

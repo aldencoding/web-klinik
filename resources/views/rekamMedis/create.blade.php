@@ -3,7 +3,7 @@
 <div class="">
     <div class="card">
         <div class="card-header">
-            <h4>Rekam Medis</h4>
+            <h4>ID: {{$pasienId}} - {{$pasienName}}</h4>
         </div>
         <div class="card-body">
             @if ($errors->any())

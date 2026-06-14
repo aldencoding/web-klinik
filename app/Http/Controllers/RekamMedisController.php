@@ -6,6 +6,7 @@ use App\Models\Kunjungan;
 use App\Models\Pasien;
 use App\Models\RekamMedis;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,18 +17,11 @@ class RekamMedisController extends Controller
     public function index()
     {
         // ambil data rekam Medis
-        $rekamMedis = RekamMedis::with(['pasien', 'dokter'])
-            ->get([
-                'id',
-                'kunjungan_id',
-                'pasien_id',
-                'keluhan',
-                'riwayat_penyakit',
-                'status'
-            ]);
-        // dd($rekamMedis[0]->dokter);
+        $data = Kunjungan::with(['pasien.user', 'dokter'])
+            ->whereDate('created_at', Carbon::today())
+            ->get();
 
-        return view('rekamMedis.index', compact('rekamMedis'));
+        return view('rekamMedis.index', compact('data'));
     }
 
     public function create($id)
@@ -38,16 +32,21 @@ class RekamMedisController extends Controller
         $pasien = Pasien::findOrFail($id);
         $pasienId = $pasien->id;
         $pasienName = $pasien->user->name;
-
+        // Ambil data kunjungan pertama
         $kunjungan = Kunjungan::where('pasien_id', $pasien->id)->first();
-        $kunjunganId = $kunjungan->id;
-        $dokterId = $kunjungan->dokter_id;
-        // dd([
-        //     'pasienName' => $pasienName,
-        //     'pasienId' => $pasienId,
-        //     'kunjunganId' => $kunjunganId,
-        //     'dokterId' => $dokterId
-        // ]);
+
+        // Validasi apakah data kunjungan ditemukan
+        if ($kunjungan) {
+            $kunjunganId = $kunjungan->id;
+            $dokterId = $kunjungan->dokter_id;
+            $kunjungan->save();
+        } else {
+            // Tangani jika kunjungan tidak ditemukan
+            return redirect()->back()->with('error', 'pasien belum melakukan Kujungan!');
+        }
+
+        // Update status menjadi dipanggil dokter
+        $kunjungan->status_antrian = 'dipanggil';
         return view('rekamMedis.create', compact(['pasienName', 'pasienId', 'dokterId', 'kunjunganId']));
     }
 
