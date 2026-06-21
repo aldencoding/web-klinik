@@ -93,6 +93,11 @@
         </div>
     </div>
 </div>
+
+@if(session()->has('queue_ticket'))
+<x-queue-ticket-modal :ticket="session('queue_ticket')" />
+@endif
+
 @push('scripts')
 <script>
     $('#selectPasien').on('change', function() {

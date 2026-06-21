@@ -68,5 +68,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [KunjunganController::class, 'index'])->name('kunjungan.index');
         Route::get('/create', [KunjunganController::class, 'create'])->name('kunjungan.create');
         Route::post('/', [KunjunganController::class, 'store'])->name('kunjungan.store');
+        Route::get('/antrian/{kunjungan}', [KunjunganController::class, 'showQueue'])->name('antrian.show');
     });
 });

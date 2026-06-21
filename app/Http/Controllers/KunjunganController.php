@@ -2,20 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Pasien;
+use App\Models\Dokter;
 use App\Models\Kunjungan;
+use App\Models\Pasien;
 use App\Models\RekamMedis;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str as SupportStr;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class KunjunganController extends Controller
 {
-    private function generateNomorKunjungan() {}
+    public function showQueue(Kunjungan $kunjungan)
+    {
+        $kunjungan->load([
+            'pasien.user',
+            'dokter'
+        ]);
 
-    //keperluan dari JQUERY
+        return view('kunjungan.show-queue', compact('kunjungan'));
+    }
+    // keperluan dari JQUERY
     public function getPasien($id)
     {
         // return response()->json(['data' => $request->all()]);
@@ -23,10 +30,10 @@ class KunjunganController extends Controller
         //     'user_id' => 'required'
         // ]);
 
-        if (!$id) {
+        if (! $id) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'ID Pasien tidak ditemukan'
+                'message' => 'ID Pasien tidak ditemukan',
             ]);
         }
 
@@ -34,42 +41,83 @@ class KunjunganController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$result) {
+        if (! $result) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'Pasien tidak terdaftar'
+                'message' => 'Pasien tidak terdaftar',
             ]);
         }
 
         return response()->json([
             'status' => 'Succes',
             'message' => 'Pasien terdaftar',
-            'data' =>  $result
+            'data' => $result,
         ]);
     }
-    public function index()
+
+    public function index(Request $request)
     {
-        // $today = Carbon::today()->toDateString();
-        // 1. Ambil data kunjungan sekaligus dengan data pasien dan user-nya (Nested Eager Loading)
-        $data = Kunjungan::with(['pasien.user', 'dokter'])
-            ->whereDate('created_at', Carbon::today())
-            ->get();
+        $validated = $request->validate([
+            'periode' => 'nullable|in:hari_ini,mingguan,bulanan,semua_tanggal',
+            'poli' => 'nullable|string|max:255',
+            'jaminan' => 'nullable|string|max:255',
+            'status' => 'nullable|in:menunggu,dipanggil,menunggu_obat,selesai',
+        ]);
 
-        // 2. Ubah datanya menjadi array menggunakan map() bawaan Laravel Collections
-        // $data = $kunjungan->map(function ($k) {
-        //     return [
-        //         'no_antrian'  => $k->no_antrian,
-        //         'dokter' => $k->dokter->user->name, // Mengambil langsung lewat relasi
-        //         'pasien' => $k->pasien->user->name, // Mengambil langsung lewat relasi
-        //         'poli'        => $k->poli,
-        //         'jaminan'     => $k->jaminan,
-        //         'keluhan'     => $k->jaminan,
-        //         'status'      => $k->status_antrian,
-        //     ];
-        // })->toArray();
-        // dd($data);
+        $periode = $validated['periode'] ?? 'hari_ini';
+        $today = Carbon::today();
 
-        return view('kunjungan.index', compact('data'));
+        $query = Kunjungan::with(['pasien.user', 'dokter.user']);
+
+        if ($periode === 'mingguan') {
+            $query->whereBetween('created_at', [
+                $today->copy()->startOfWeek(Carbon::MONDAY),
+                $today->copy()->endOfWeek(Carbon::SUNDAY),
+            ]);
+        } elseif ($periode === 'bulanan') {
+            $query->whereBetween('created_at', [
+                $today->copy()->startOfMonth(),
+                $today->copy()->endOfMonth(),
+            ]);
+        } else {
+            $query->whereDate('created_at', $today);
+        }
+
+        $query
+            ->when($validated['poli'] ?? null, function ($query, $poli) {
+                $query->where('poli', $poli);
+            })
+            ->when($validated['jaminan'] ?? null, function ($query, $jaminan) {
+                $query->where('jaminan', $jaminan);
+            })
+            ->when($validated['status'] ?? null, function ($query, $status) {
+                $query->where('status_antrian', $status);
+            });
+
+        $data = $query->latest()->get();
+
+        if ($request->ajax()) {
+            return view('kunjungan._table', compact('data'));
+        }
+
+        $poliOptions = Kunjungan::query()
+            ->whereNotNull('poli')
+            ->distinct()
+            ->orderBy('poli')
+            ->pluck('poli');
+
+        $jaminanOptions = Kunjungan::query()
+            ->whereNotNull('jaminan')
+            ->distinct()
+            ->orderBy('jaminan')
+            ->pluck('jaminan');
+
+        return view('kunjungan.index', compact(
+            'data',
+            'periode',
+            'poliOptions',
+            'jaminanOptions'
+        ));
     }
 
     public function create()
@@ -79,117 +127,69 @@ class KunjunganController extends Controller
                 $query->where('role', '=', 'pasien');
             })
             ->get();
+
         return view('kunjungan.create', compact(['pasiens']));
     }
 
     public function store(Request $request)
     {
-
-        $today = Carbon::today()->toDateString();
-
         $validated = $request->validate([
-            // 'pasien' => 'required',
-            // 'pasien_id' => 'required',
-            // 'nik' => 'required',
-            'pasien_id' => 'required',
-            'poli' => 'required',
-            'jaminan' => 'required',
-            'keluhan' => 'required',
+            'pasien_id' => 'required|exists:pasiens,id',
+            'poli' => 'required|in:Umum,Gigi',
+            'jaminan' => 'required|in:Asuransi,Pribadi',
+            'keluhan' => 'required|string',
         ]);
 
-        //query nik sudah tidak dipakai, diganti dengan id pasien
-        // $pasien = Pasien::where("nik", $validated['nik'])
-        //     ->get()->firstOrFail();
-        // if (!$pasien) {
-        //     Alert::error("error", "NIK tidak terdaftar");
-        //     return redirect()
-        //         ->back();
-        // }
-        $lastNumber = Kunjungan::whereDate("created_at", $today)
-            ->where("poli", $validated['poli'])
-            ->orderByDesc("no_antrian")->first();
+        $kunjungan = DB::transaction(function () use ($validated) {
+            $prefix = $validated['poli'] === 'Gigi' ? 'G' : 'U';
+            $lastNumber = Kunjungan::whereDate('created_at', Carbon::today())
+                ->where('poli', $validated['poli'])
+                ->lockForUpdate()
+                ->orderByDesc('no_antrian')
+                ->first();
 
-        // no antrian
-        if (!$lastNumber) {
-            if ($validated['poli'] == 'Gigi') {
-                $kunjungan = Kunjungan::create([
-                    'dokter_id' => 2,
-                    'pasien_id' =>  $validated['pasien_id'],
-                    'poli' =>  $validated['poli'],
-                    'jaminan' =>  $validated['jaminan'],
-                    'keluhan' =>  $validated['keluhan'],
-                    'no_antrian' => 'G001',
-                    'status_antrian' => 'Menunggu',
-                ]);
+            $number = $lastNumber
+                ? intval(SupportStr::substr($lastNumber->no_antrian, 1)) + 1
+                : 1;
 
-                RekamMedis::create([
-                    'kunjungan_id' => $kunjungan->id,
-                    'pasien_id' => $kunjungan->pasien_id,
-                    'dokter_id' => $kunjungan->dokter_id,
-                    'status' => 'menunggu'
+            $dokter = Dokter::whereHas('poli', function ($query) use ($validated) {
+                $query->where('nama', $validated['poli']);
+            })->first();
 
-                ]);
-            } elseif ($validated['poli'] == 'Umum') {
-                $kunjungan = Kunjungan::create([
-                    'dokter_id' => 1,
-                    'pasien_id' =>  $validated['pasien_id'],
-                    'poli' =>  $validated['poli'],
-                    'jaminan' =>  $validated['jaminan'],
-                    'keluhan' =>  $validated['keluhan'],
-                    'no_antrian' => 'U001',
-                    'status_antrian' => 'Menunggu',
-                ]);
+            $kunjungan = Kunjungan::create([
+                'dokter_id' => $dokter?->id ?? ($validated['poli'] === 'Gigi' ? 2 : 1),
+                'pasien_id' => $validated['pasien_id'],
+                'poli' => $validated['poli'],
+                'jaminan' => $validated['jaminan'],
+                'keluhan' => $validated['keluhan'],
+                'no_antrian' => $prefix . str_pad($number, 3, '0', STR_PAD_LEFT),
+                'status_antrian' => 'menunggu',
+            ]);
 
-                RekamMedis::create([
-                    'kunjungan_id' => $kunjungan->id,
-                    'pasien_id' => $kunjungan->pasien_id,
-                    'dokter_id' => $kunjungan->dokter_id,
-                    'status' => 'menunggu'
+            RekamMedis::create([
+                'kunjungan_id' => $kunjungan->id,
+                'pasien_id' => $kunjungan->pasien_id,
+                'dokter_id' => $kunjungan->dokter_id,
+                'status' => 'menunggu',
+            ]);
 
-                ]);
-            }
-            Alert::success('Sukses', 'Pasien berhasil di Daftarkan');
-            return redirect()->back();
-        }
-        // Asumsi $lastNumber->no_antrian adalah "A001"
-        $lastKunjungan = $lastNumber->no_antrian;
+            return $kunjungan;
+        });
 
-        // 1. Ambil prefix (huruf depan), misalnya "A"
-        $prefix = SupportStr::substr($lastKunjungan, 0, 1);
-        $dokterId = null;
-        if ($prefix == "U") {
-            $dokterId = 1;
-        } elseif ($prefix == "G") {
-            $dokterId = 2;
-        }
+        $kunjungan->load('pasien.user');
 
-        // 2. Ambil angka setelah huruf, ubah ke integer, lalu tambah 1
-        $number = intval(SupportStr::substr($lastKunjungan, 1)) + 1;
-
-        // 3. Gabungkan kembali dengan format angka 3 digit (001, 002, dst)
-        $final = $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
-
-        // Hasil: "A002"
-
-        $kunjungan = Kunjungan::create([
-            'dokter_id' => $dokterId,
-            'pasien_id' =>  $validated['pasien_id'],
-            'poli' =>  $validated['poli'],
-            'jaminan' =>  $validated['jaminan'],
-            'keluhan' =>  $validated['keluhan'],
-            'no_antrian' => $final,
-            'status_antrian' => 'Menunggu',
+        session()->flash('queue_ticket', [
+            'id' => $kunjungan->id,
+            'number' => $kunjungan->no_antrian,
+            'patient_name' => $kunjungan->pasien?->user?->name ?? '-',
+            'clinic' => $kunjungan->poli,
+            'schedule' => $kunjungan->created_at
+                ->locale('id')
+                ->translatedFormat('d F Y, H:i'),
+            'qr_url' => route('antrian.show', $kunjungan->id),
         ]);
 
-        RekamMedis::create([
-            'kunjungan_id' => $kunjungan->id,
-            'pasien_id' => $kunjungan->pasien_id,
-            'dokter_id' => $kunjungan->dokter_id,
-            'status' => 'menunggu'
-        ]);
-
-        Alert::success('Sukses', 'Pasien berhasil di Daftarkan');
-        return redirect()->back();
+        return redirect()->route('kunjungan.create');
     }
 
     public function show()

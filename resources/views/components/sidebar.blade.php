@@ -14,6 +14,13 @@
                 @if (auth()->user()->role === 'admin')
 
                 <li class="pc-item">
+                    <a href="/" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-home"></i></span>
+                        <span class="pc-mtext">Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
                     <a href="{{ route('pasien.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-users"></i></span>
                         <span class="pc-mtext">Data Pasien</span>
