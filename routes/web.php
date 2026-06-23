@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KunjunganController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PasienController;
+use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RekamMedisController;
 use App\Models\Kunjungan;
 
@@ -69,5 +70,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [KunjunganController::class, 'create'])->name('kunjungan.create');
         Route::post('/', [KunjunganController::class, 'store'])->name('kunjungan.store');
         Route::get('/antrian/{kunjungan}', [KunjunganController::class, 'showQueue'])->name('antrian.show');
+    });
+
+    // Grouping Profil
+    Route::prefix('profil')->group(function () {
+        Route::get('{userId}', [ProfilController::class, 'index'])->name('profile.index');
     });
 });

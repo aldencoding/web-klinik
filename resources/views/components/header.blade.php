@@ -112,15 +112,10 @@
                     </div>
                 </li>
                 <li class="dropdown pc-h-item header-user-profile">
-                    <a
-                        class="pc-head-link dropdown-toggle arrow-none me-0"
-                        data-bs-toggle="dropdown"
-                        href="#"
-                        role="button"
-                        aria-haspopup="false"
-                        data-bs-auto-close="outside"
-                        aria-expanded="false">
-                        <img src="{{asset('template/dist')}}/assets/images/user/avatar-2.jpg" alt="user-image" class="user-avtar">
+                    <a class="pc-head-link me-0"
+                        href="{{ route('profile.index', ['userId' => auth()->user()->id]) }}"
+                        role="button">
+                        <img src="{{ asset('template/dist/assets/images/user/avatar-2.jpg') }}" alt="user-image" class="user-avtar">
                         <span>{{ auth()->user()->nama }}</span>
                     </a>
 
