@@ -13,7 +13,68 @@ use Illuminate\Support\Str as SupportStr;
 
 class KunjunganController extends Controller
 {
-    public function kunjunganMandiri()
+
+    public function postKunjunganMandiri(Request $request)
+    {
+        $validated = $request->validate([
+            'pasien_id' => 'required|exists:pasiens,id',
+            'poli' => 'required|in:Umum,Gigi',
+            'jaminan' => 'required|in:Asuransi,Pribadi',
+            'keluhan' => 'required|string',
+        ]);
+
+        $kunjungan = DB::transaction(function () use ($validated) {
+            $prefix = $validated['poli'] === 'Gigi' ? 'G' : 'U';
+            $lastNumber = Kunjungan::whereDate('created_at', Carbon::today())
+                ->where('poli', $validated['poli'])
+                ->lockForUpdate()
+                ->orderByDesc('no_antrian')
+                ->first();
+
+            $number = $lastNumber
+                ? intval(SupportStr::substr($lastNumber->no_antrian, 1)) + 1
+                : 1;
+
+            $dokter = Dokter::whereHas('poli', function ($query) use ($validated) {
+                $query->where('nama', $validated['poli']);
+            })->first();
+
+            $kunjungan = Kunjungan::create([
+                'dokter_id' => $dokter?->id ?? ($validated['poli'] === 'Gigi' ? 2 : 1),
+                'pasien_id' => $validated['pasien_id'],
+                'poli' => $validated['poli'],
+                'jaminan' => $validated['jaminan'],
+                'keluhan' => $validated['keluhan'],
+                'no_antrian' => $prefix . str_pad($number, 3, '0', STR_PAD_LEFT),
+                'status_antrian' => 'menunggu',
+            ]);
+
+            RekamMedis::create([
+                'kunjungan_id' => $kunjungan->id,
+                'pasien_id' => $kunjungan->pasien_id,
+                'dokter_id' => $kunjungan->dokter_id,
+                'status' => 'menunggu',
+            ]);
+
+            return $kunjungan;
+        });
+
+        $kunjungan->load('pasien.user');
+
+        session()->flash('queue_ticket', [
+            'id' => $kunjungan->id,
+            'number' => $kunjungan->no_antrian,
+            'patient_name' => $kunjungan->pasien?->user?->name ?? '-',
+            'clinic' => $kunjungan->poli,
+            'schedule' => $kunjungan->created_at
+                ->locale('id')
+                ->translatedFormat('d F Y, H:i'),
+            'qr_url' => route('antrian.show', $kunjungan->id),
+        ]);
+
+        return redirect()->route('kunjungan.getKunjunganMandiri');
+    }
+    public function getKunjunganMandiri()
     {
         $pasiens = Pasien::with(['user'])
             ->whereHas('user', function ($query) {
@@ -21,7 +82,7 @@ class KunjunganController extends Controller
             })
             ->get();
 
-        return view('kunjungan.create', compact(['pasiens']));
+        return view('kunjungan.kunjungan-mandiri', compact(['pasiens']));
     }
     public function showQueue(Kunjungan $kunjungan)
     {

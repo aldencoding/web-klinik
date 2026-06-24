@@ -2,11 +2,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="queueTicketModalLabel">Cetak Antrian</h5>
+                <h5 class="modal-title" id="queueTicketModalLabel">Unduh Tiket Antrian</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body d-flex justify-content-center bg-light">
-                <section id="queueTicketPrintable" class="queue-ticket">
+                <section id="queueTicketPrintable" class="queue-ticket" style="background: #fff; padding: 20px; border-radius: 8px;">
                     <header class="queue-ticket__header">
                         <strong>KLINIK SEHAT</strong>
                         <span>Tiket Antrian Kunjungan</span>
@@ -53,8 +53,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary" id="printQueueTicket">
-                    <i class="ti ti-printer me-1"></i>Cetak
+                <button type="button" class="btn btn-success" id="downloadQueueTicket">
+                    <i class="ti ti-download me-1"></i>Unduh PNG
                 </button>
             </div>
         </div>
@@ -186,16 +186,36 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const modalElement = document.getElementById('queueTicketModal');
-        const printButton = document.getElementById('printQueueTicket');
+    $(document).ready(function() {
+        const $modalElement = $('#queueTicketModal');
 
-        if (modalElement) {
-            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        // 1. Tampilkan modal otomatis (Sintaks jQuery)
+        if ($modalElement.length) {
+            $modalElement.modal('show');
         }
 
-        printButton?.addEventListener('click', function() {
-            window.print();
+        // 2. Event handler klik tombol (Sintaks jQuery)
+        $('#downloadQueueTicket').on('click', function() {
+            // Mengambil elemen HTML menggunakan selektor jQuery [0] untuk mendapatkan objek DOM mentah yang dibutuhkan html2canvas
+            const ticketElement = $('#queueTicketPrintable')[0];
+            const nomorAntrian = "{{ $ticket['number'] }}";
+
+            // Proses konversi html2canvas
+            html2canvas(ticketElement, {
+                scale: 2,
+                backgroundColor: '#ffffff'
+            }).then(function(canvas) {
+                const imageString = canvas.toDataURL("image/png");
+
+                // 3. Membuat & memicu download link sepenuhnya dengan jQuery
+                $('<a>', {
+                    href: imageString,
+                    download: 'Tiket_Antrian_' + nomorAntrian + '.png'
+                }).appendTo('body')[0].click();
+
+                // Hapus kembali link virtual dari body setelah didownload
+                $('body').children('a:last').remove();
+            });
         });
     });
 </script>

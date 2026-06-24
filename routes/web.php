@@ -27,7 +27,8 @@ Route::get('/get-csrf-token', function () {
 });
 
 // Tanpa memerlukan authentication
-Route::get('/kunjungan/mandiri', [KunjunganController::class, 'kunjunganMandiri'])->name('kunjungan.kunjunganMandiri');
+Route::get('/kunjungan/mandiri', [KunjunganController::class, 'getKunjunganMandiri'])->name('kunjungan.getKunjunganMandiri');
+Route::post('/kunjungan/mandiri', [KunjunganController::class, 'postKunjunganMandiri'])->name('kunjungan.postKunjunganMandiri');
 
 // AJAX
 Route::post('get-pasien/{id}', [KunjunganController::class, 'getPasien'])->name('kunjunganGetPasien');

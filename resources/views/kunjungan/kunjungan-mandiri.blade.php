@@ -18,7 +18,7 @@
             </div>
             @endif
 
-            <form action="{{ route('kunjungan.store') }}" method="post" class="needs-validation">
+            <form action="{{ route('kunjungan.postKunjunganMandiri') }}" method="post" class="needs-validation">
                 @csrf
                 <input type="hidden" name="user_id" id="userID">
 
@@ -33,21 +33,6 @@
                     </select>
                     <div id="pasienMessage" class="form-text text-danger mt-1" style="display: none;"></div>
                 </div>
-
-                <!-- Detail Pasien (Read-Only) -->
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small text-muted mb-1" for="tanggalLahirPasien">Tanggal Lahir</label>
-                        <input type="date" class="form-control bg-light" readonly name="tanggal_lahir" id="tanggalLahirPasien">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted mb-1" for="jenisKelaminPasien">Jenis Kelamin</label>
-                        <input type="text" class="form-control bg-light" readonly name="jenis_kelamin" id="jenisKelaminPasien">
-                    </div>
-                </div>
-
-                <hr class="text-muted my-3 opacity-25">
-
                 <!-- Jaminan -->
                 <div class="mb-3">
                     <label for="jaminan" class="form-label fw-semibold">Jaminan / Metode Bayar</label>

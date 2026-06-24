@@ -77,7 +77,8 @@
 
                 <section
                     id="queueTicketPrintable"
-                    class="queue-ticket">
+                    class="queue-ticket"
+                    style="background: #ffffff; padding: 20px; border-radius: 8px; width: 100%;">
 
                     <header class="queue-ticket__header">
                         <strong>KLINIK SEHAT</strong>
@@ -153,7 +154,7 @@
 
                 <button
                     class="btn btn-primary"
-                    id="printQueueTicket">
+                    id="actionQueueTicket">
                     Cetak
                 </button>
 
@@ -164,28 +165,58 @@
 </div>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    $(document).ready(function() {
+        const $modalElement = $('#queueTicketModal');
+        const $actionBtn = $('#actionQueueTicket');
 
-        const modalElement =
-            document.getElementById('queueTicketModal');
-
-        if (modalElement) {
-
-            const modal =
-                new bootstrap.Modal(modalElement);
-
-            modal.show();
+        // 1. Fungsi cek apakah user menggunakan smartphone (layar < 768px)
+        function isSmartphone() {
+            return $(window).width() < 768;
         }
 
-        document
-            .getElementById('printQueueTicket')
-            ?.addEventListener('click', () => {
+        // 2. Tampilkan modal otomatis jika elemennya ada
+        if ($modalElement.length) {
+            $modalElement.modal('show');
+        }
 
+        // 3. Sesuaikan teks dan warna tombol berdasarkan perangkat saat dimuat
+        if (isSmartphone()) {
+            $actionBtn.text('Unduh PNG').removeClass('btn-primary').addClass('btn-success');
+        } else {
+            $actionBtn.text('Cetak').removeClass('btn-success').addClass('btn-primary');
+        }
+
+        // 4. Hubungkan aksi klik tombol sesuai kondisi perangkat
+        $actionBtn.on('click', function() {
+            if (isSmartphone()) {
+                // --- PROSES DOWNLOAD PNG (Smartphone) ---
+                const ticketElement = $('#queueTicketPrintable')[0]; // Ambil element DOM asli
+                const nomorAntrian = "{{ $ticket['number'] }}";
+
+                html2canvas(ticketElement, {
+                    scale: 2, // Resolusi gambar ditingkatkan agar tajam
+                    backgroundColor: '#ffffff'
+                }).then(function(canvas) {
+                    const imageString = canvas.toDataURL("image/png");
+
+                    // Trigger download menggunakan link virtual jQuery
+                    $('<a>', {
+                        href: imageString,
+                        download: 'Tiket_Antrian_' + nomorAntrian + '.png'
+                    }).appendTo('body')[0].click();
+
+                    // Bersihkan link setelah download terpicu
+                    $('body').children('a:last').remove();
+                });
+
+            } else {
+                // --- PROSES CETAK / PRINT (Tablet & PC) ---
                 window.print();
-
-            });
-
+            }
+        });
     });
 </script>
 @endpush
