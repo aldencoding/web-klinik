@@ -13,6 +13,16 @@ use Illuminate\Support\Str as SupportStr;
 
 class KunjunganController extends Controller
 {
+    public function kunjunganMandiri()
+    {
+        $pasiens = Pasien::with(['user'])
+            ->whereHas('user', function ($query) {
+                $query->where('role', '=', 'pasien');
+            })
+            ->get();
+
+        return view('kunjungan.create', compact(['pasiens']));
+    }
     public function showQueue(Kunjungan $kunjungan)
     {
         $kunjungan->load([

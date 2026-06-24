@@ -54,12 +54,13 @@
                     </ul>
                 </li>
 
-                <li class="pc-item">
+                <!-- sementara di tiadakan dahulu -->
+                <!-- <li class="pc-item">
                     <a href="{{ route('dokter.jadwal') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-user"></i></span>
                         <span class="pc-mtext">Jadwal Dokter</span>
                     </a>
-                </li>
+                </li> -->
 
                 <li class="pc-item">
                     <a href="{{ route('dokter.index') }}" class="pc-link">

@@ -25,9 +25,12 @@ use App\Models\Kunjungan;
 Route::get('/get-csrf-token', function () {
     return response()->json(['token' => csrf_token()]);
 });
+
+// Tanpa memerlukan authentication
+Route::get('/kunjungan/mandiri', [KunjunganController::class, 'kunjunganMandiri'])->name('kunjungan.kunjunganMandiri');
+
 // AJAX
 Route::post('get-pasien/{id}', [KunjunganController::class, 'getPasien'])->name('kunjunganGetPasien');
-
 
 // Route Authentication
 Route::controller(AuthController::class)->group(function () {
