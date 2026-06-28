@@ -171,6 +171,7 @@
     $(document).ready(function() {
         const $modalElement = $('#queueTicketModal');
         const $actionBtn = $('#actionQueueTicket');
+        let currentRoute = window.location.pathname;
 
         // 1. Fungsi cek apakah user menggunakan smartphone (layar < 768px)
         function isSmartphone() {
@@ -219,10 +220,12 @@
         });
 
         // Event ini mendeteksi ketika modal telah sepenuhnya tertutup
-        $modalElement.on('hidden.bs.modal', function() {
-            // Ganti URL di bawah ini dengan halaman tujuan Anda
-            window.location.href = "{{ route('kunjungan.getKunjunganToday') }}";
-        });
+        if (currentRoute === "/kunjungan/mandiri") {
+            $modalElement.on('hidden.bs.modal', function() {
+                // Ganti URL di bawah ini dengan halaman tujuan Anda
+                window.location.href = "{{ route('kunjungan.getKunjunganToday') }}";
+            });
+        }
     });
 </script>
 @endpush

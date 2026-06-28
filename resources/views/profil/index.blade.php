@@ -29,8 +29,8 @@
                                 <td>{{ Auth()->user()->email?? "" }}</td>
                             </tr>
                             <tr>
-                                <th scope="row" class="fw-bold">Spesialis</th>
-                                <td>{{ Auth()->user()->dokter->spesialis?? 'Belum diisi' }}</td>
+                                <th scope="row" class="fw-bold">Poli</th>
+                                <td>{{ Auth()->user()->dokter->poli->nama?? 'Belum diisi' }}</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="fw-bold">No. Telepon</th>
