@@ -27,7 +27,20 @@
                         type="text"
                         name="nama_dokter"
                         id="nama_dokter"
-                        value="{{ $dokter->user->nama }}">
+                        value="{{ $dokter->user->name }}">
+                    @error('nama_dokter')
+                    <span class="text-danger">{{$message}}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group my-2">
+                    <label class="form-label" for="nama_dokter">Email</label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        name="email"
+                        id="email"
+                        value="{{ $dokter->user->email }}">
                     @error('nama_dokter')
                     <span class="text-danger">{{$message}}</span>
                     @enderror

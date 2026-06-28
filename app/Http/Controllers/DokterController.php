@@ -69,6 +69,7 @@ class DokterController extends Controller
     {
         $validated = $request->validate([
             'nama_dokter' => 'required|string|max:255',
+            'email' => 'required',
             'password' => 'required',
             'poli' => 'required|exists:poli,id',
             'jenis_kelamin' => 'required|in:pria,wanita',
@@ -83,6 +84,7 @@ class DokterController extends Controller
 
             $user = User::create([
                 'name' => $validated['nama_dokter'],
+                'email' => $validated['email'],
                 'password' => $dokterPassword,
                 'role' => 'dokter'
             ]);
@@ -113,6 +115,7 @@ class DokterController extends Controller
     {
         $validated = $request->validate([
             'nama_dokter' => 'required|string|max:255',
+            'email' => 'required',
             'jenis_layanan' => 'required|exists:layanans,id',
             'jenis_kelamin' => 'required|in:pria,wanita',
             'no_telepon' => 'nullable|regex:/^[0-9]+$/|min:10|max:15',
@@ -125,6 +128,7 @@ class DokterController extends Controller
                 // update user
                 $dokter->user->update([
                     'nama' => $validated['nama_dokter'],
+                    'email' => $validated['email'],
                 ]);
 
                 // update dokter

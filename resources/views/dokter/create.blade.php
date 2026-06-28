@@ -71,6 +71,18 @@
                 </div>
 
                 <div class="form-group my-2">
+                    <label class="form-label" for="password">Akun</label>
+                    <input
+                        class="form-control"
+                        type="email"
+                        name="email"
+                        id="email">
+                    @error('email')
+                    <span class="text-danger">{{$message}}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group my-2">
                     <label class="form-label" for="password">Password</label>
                     <input
                         class="form-control"
