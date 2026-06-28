@@ -27,13 +27,6 @@
                     </a>
                 </li>
 
-                <li class="pc-item">
-                    <a href="{{ route('rekamMedis.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-clipboard-list"></i></span>
-                        <span class="pc-mtext">Tangani Pasien</span>
-                    </a>
-                </li>
-
                 <li class="pc-item pc-hasmenu">
                     <a href="#!" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-menu"></i></span>
@@ -89,6 +82,11 @@
                                 Daftar Kunjungan
                             </a>
                         </li>
+                        <!-- <li class="pc-item">
+                            <a href="{{ route('rekamMedis.index') }}" class="pc-link">
+                                Tangani Pasien
+                            </a>
+                        </li> -->
                     </ul>
                 </li>
 

@@ -18,13 +18,13 @@
     </div>
     <!-- [ Pre-loader ] End -->
     <!-- [ Sidebar Menu ] start -->
-    @if (!request()->is('login','register','kunjungan/mandiri'))
+    @if (!request()->is('login','register','kunjungan/mandiri','kunjungan/hari-ini','daftar/mandiri'))
     <x-sidebar />
     @endif
     <!-- [ Sidebar Menu ] end -->
 
     <!-- [ Header Topbar ] start -->
-    @if (!request()->is('login','register','kunjungan/mandiri'))
+    @if (!request()->is('login','register','kunjungan/mandiri','kunjungan/hari-ini','daftar/mandiri'))
     <x-header />
     @endif
     <!-- [ Header ] end -->
@@ -32,7 +32,7 @@
 
 
     <!-- [ Main Content ] start -->
-    @if (!request()->is('login','register','kunjungan/mandiri'))
+    @if (!request()->is('login','register','kunjungan/mandiri','kunjungan/hari-ini','daftar/mandiri'))
     <div class="pc-container">
         <div class="pc-content">
             <!-- [ breadcrumb ] start -->
@@ -53,7 +53,7 @@
     @endif
 
 
-    @if (!request()->is('login','register','kunjungan/mandiri'))
+    @if (!request()->is('login','register','kunjungan/mandiri','kunjungan/hari-ini','daftar/mandiri'))
     <x-footer />
     @endif
 

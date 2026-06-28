@@ -26,28 +26,33 @@ class RekamMedisController extends Controller
 
     public function create($id)
     {
-        // Note: harus ambil data sesuai model
-        // ambil pasien id
-        // parameter $id adalah dari rekamMedis->pasien->user_id pasien user_id
+        // 1. Ambil data pasien atau gagalkan jika tidak ketemu
         $pasien = Pasien::findOrFail($id);
         $pasienId = $pasien->id;
         $pasienName = $pasien->user->name;
-        // Ambil data kunjungan pertama
-        $kunjungan = Kunjungan::where('pasien_id', $pasien->id)->first();
 
-        // Validasi apakah data kunjungan ditemukan
-        if ($kunjungan) {
-            $kunjunganId = $kunjungan->id;
-            $dokterId = $kunjungan->dokter_id;
-            $kunjungan->save();
-        } else {
-            // Tangani jika kunjungan tidak ditemukan
-            return redirect()->back()->with('error', 'pasien belum melakukan Kujungan!');
+        // 2. Ambil data kunjungan TERBARU yang statusnya mungkin masih mengantri
+        //    (Sesuaikan 'mengantri' dengan enum/string status di database Anda)
+        $kunjungan = Kunjungan::where('pasien_id', $pasien->id)
+            ->latest()
+            ->first();
+
+        // 3. Validasi apakah data kunjungan ditemukan
+        if (!$kunjungan) {
+            // Gunakan return early untuk memotong komparasi (lebih rapi)
+            return redirect()->back()->with('error', 'Pasien belum melakukan kunjungan atau tidak sedang mengantri!');
         }
 
-        // Update status menjadi dipanggil dokter
+        // 4. Proses data jika kunjungan ditemukan
+        $kunjunganId = $kunjungan->id;
+        $dokterId = $kunjungan->dokter_id;
+
+        // Update status dan SIMPAN ke database
         $kunjungan->status_antrian = 'dipanggil';
-        return view('rekamMedis.create', compact(['pasienName', 'pasienId', 'dokterId', 'kunjunganId']));
+        $kunjungan->save();
+
+        // 5. Lempar ke view
+        return view('rekamMedis.create', compact('pasienName', 'pasienId', 'dokterId', 'kunjunganId'));
     }
 
     public function edit($id)
@@ -82,9 +87,11 @@ class RekamMedisController extends Controller
                     'resep' => $validated['resep'],
                     'status' => 'selesai'
                 ]);
+
+                Kunjungan::where('id', $validated['kunjungan_id'])->update(['status_antrian' => "selesai"]);
             });
             Alert::success('Sukses', 'Data Rekam Medis Berhasil ditambahkan');
-            return redirect()->route('rekamMedis.index');
+            return redirect()->route('dokter.daftarAntrian');
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }

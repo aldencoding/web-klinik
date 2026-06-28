@@ -24,10 +24,12 @@ class DokterController extends Controller
     public function getKunjungan()
     {
         $today = Carbon::today()->toDateString();
-        $kunjungan = Kunjungan::with(['user'])
-            ->where('created_at', $today)
+        $kunjungans = Kunjungan::with(['pasien.user'])
+            ->where('status_antrian', "menunggu")
+            ->where('dokter_id', auth()->user()->dokter->id)
+            ->whereDate('created_at', $today)
             ->get();
-        return view('dokter.kunjungan', compact('kunjungan'));
+        return view('dokter.kunjungan', compact('kunjungans'));
     }
     public function getRekamMedisPasien(Request $request)
     {

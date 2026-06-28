@@ -6,7 +6,7 @@
             <h4>Daftar Pasien</h4>
         </div>
         <div class="card-body">
-            <form action="{{ route('pasien.store') }}" method="post">
+            <form action="{{ route('pasien.postDaftarMandiri') }}" method="post">
                 @csrf
                 <div class="form-group">
                     <label class="form-label" for="nik">NIK</label>
@@ -54,7 +54,7 @@
                     <select name="jenis_kelamin" class="form-select" id="jenis_kelamin">
                         <option selected value="">Pilih Jenis Kelamin</option>
                         <option value="pria" {{old('jenis_kelamin') == 'pria' ? 'selected':''}}>Pria</option>
-                        <option value="wanita" {{old('jenis_kelamin') == 'wanita' ? 'selected':''}}>Wanita</option>
+                        <option value="wanita" {{old('jenis_kelamin') == 'pria' ? 'selected':''}}>Wanita</option>
                     </select>
                     @error('jenis_kelamin')
                     <span class="text-danger">{{$message}}</span>

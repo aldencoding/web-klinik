@@ -24,13 +24,8 @@
 
                 <!-- Cari Pasien -->
                 <div class="mb-3">
-                    <label for="selectPasien" class="form-label fw-semibold">Cari Nama Pasien</label>
-                    <select class="form-select form-select-lg" id="selectPasien" name="pasien_id" required>
-                        <option value="" selected disabled>Pilih Pasien...</option>
-                        @foreach($pasiens as $pasien)
-                        <option value="{{ $pasien->id }}">{{ $pasien->user->name ?? '-' }}</option>
-                        @endforeach
-                    </select>
+                    <label for="selectPasien" class="form-label fw-semibold">Masukan NIK</label>
+                    <input type="number" class="form-control" name="nik">
                     <div id="pasienMessage" class="form-text text-danger mt-1" style="display: none;"></div>
                 </div>
                 <!-- Jaminan -->
@@ -63,11 +58,15 @@
                 </div>
 
                 <!-- Tombol Submit (Full Width di Mobile agar mudah ditekan jempol) -->
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end align-items-center">
                     <button class="btn btn-primary btn-lg px-4 fs-6" type="submit">
                         <i class="bi bi-calendar-plus me-1"></i> Buat Antrian
                     </button>
+                    <a href="{{ route('pasien.getDaftarMandiri') }}" class=" px-4 fs-6 me-sm-2">
+                        Belum punya akun? Daftar
+                    </a>
                 </div>
+
             </form>
         </div>
     </div>
@@ -80,6 +79,10 @@
 @push('scripts')
 <script>
     $('#selectPasien').on('change', function() {
+        if ($(this).val() == "BELUM DAFTAR") {
+            return window.location.href = '{{ route("pasien.create") }}'
+        };
+
         let pasienId = $(this).val();
         $('#pasienMessage').hide().text('');
 

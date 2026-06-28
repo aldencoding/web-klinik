@@ -10,6 +10,55 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class PasienController extends Controller
 {
+    public function postdaftarMandiri(Request $request, Pasien $pasien)
+    {
+
+        $validated = $request->validate([
+            'nik' => 'required|digits:16|unique:pasiens,nik',
+            'no_bpjs' => 'required|digits:13|unique:pasiens,no_bpjs',
+            'nama_pasien' => 'required|string|max:255',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|in:pria,wanita',
+            'no_telepon' => 'nullable|regex:/^[0-9]+$/|min:10|max:15',
+            'alamat' => 'required|string|max:255',
+        ], [
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.unique' => 'NIK sudah terdaftar.',
+            'nama_pasien.required' => 'Kolom Nama Wajib diisi'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $user = User::create([
+                'name' => $validated['nama_pasien'],
+                'role' => 'pasien'
+            ]);
+
+            $pasien->create([
+                "nik" => $validated['nik'],
+                "user_id" => $user->id,
+                "no_bpjs" => $validated['no_bpjs'],
+                "jenis_kelamin" => $validated['jenis_kelamin'],
+                "tanggal_lahir" => $validated['tanggal_lahir'],
+                "no_telepon" => $validated['no_telepon'],
+                "alamat" => $validated['alamat']
+            ]);
+
+            DB::commit();
+            Alert::success('Sukses', 'Daftar Berhasil!');
+
+            return redirect()->route('kunjungan.getKunjunganMandiri');
+        } catch (\Throwable $e) {
+            dd($e->getMessage());
+        }
+    }
+    public function getDaftarMandiri()
+    {
+
+        return view('pasien.daftar-mandiri');
+    }
+
     public function index()
     {
         $pasien = Pasien::with('user')->get();

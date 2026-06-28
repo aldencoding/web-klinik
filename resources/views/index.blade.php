@@ -1,7 +1,7 @@
 @extends('layouts.mantis')
 @section('content')
 <div class="">
-    <h1>Selamat Datang, {{ Auth::user()->nama }}</h1>
+    <h1>Selamat Datang, {{ Auth::user()->name }}</h1>
     <!-- <div class="card">
         <a class="card-body" role="button" href="/dokter" class="cursor-pointer">
             <h6 class="mb-2 f-w-400 text-muted">Dokter</h6>

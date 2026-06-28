@@ -8,7 +8,7 @@
         <div class="card-body">
             <div class="d-flex align-items-start gap-4">
                 <div class="flex-shrink-0 text-center">
-                    <img src="https://i.pinimg.com/736x/34/50/54/3450547a2107d458f5810f8f3cd94362.jpg"
+                    <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
                         alt="Foto {{ $userProfile->nama }}"
                         class="img-thumbnail rounded"
                         style="width: 150px; height: 150px; object-fit: cover;">
@@ -22,19 +22,19 @@
                         <tbody>
                             <tr>
                                 <th scope="row" class="fw-bold">Nama</th>
-                                <td>{{ $userProfile->nama?? "Alicia Cheng" }}</td>
+                                <td>{{ Auth()->user()->name?? "Alicia Cheng" }}</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="fw-bold">Email</th>
-                                <td>{{ $userProfile->email }}</td>
+                                <td>{{ Auth()->user()->email?? "" }}</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="fw-bold">Spesialis</th>
-                                <td>{{ $userProfile->spesialis ?? 'Belum diisi' }}</td>
+                                <td>{{ Auth()->user()->dokter->spesialis?? 'Belum diisi' }}</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="fw-bold">No. Telepon</th>
-                                <td>{{ $userProfile->telepon ?? '-' }}</td>
+                                <td>{{ Auth()->user()->dokter->no_telepon?? 'Belum diisi' }}</td>
                             </tr>
                         </tbody>
                     </table>

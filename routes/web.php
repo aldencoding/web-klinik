@@ -29,6 +29,12 @@ Route::get('/get-csrf-token', function () {
 // Tanpa memerlukan authentication
 Route::get('/kunjungan/mandiri', [KunjunganController::class, 'getKunjunganMandiri'])->name('kunjungan.getKunjunganMandiri');
 Route::post('/kunjungan/mandiri', [KunjunganController::class, 'postKunjunganMandiri'])->name('kunjungan.postKunjunganMandiri');
+// berfugsi untuk dilihat user
+Route::get('/kunjungan/hari-ini', [KunjunganController::class, 'getKunjunganToday'])->name('kunjungan.getKunjunganToday');
+// berfugsi untuk dilihat user
+Route::get('/daftar/mandiri', [PasienController::class, 'getDaftarMandiri'])->name('pasien.getDaftarMandiri');
+Route::post('/daftar/mandiri', [PasienController::class, 'postDaftarMandiri'])->name('pasien.postDaftarMandiri');
+
 
 // AJAX
 Route::post('get-pasien/{id}', [KunjunganController::class, 'getPasien'])->name('kunjunganGetPasien');
@@ -42,8 +48,33 @@ Route::controller(AuthController::class)->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', function () {
+        if (auth()->user()->role === 'dokter') {
+            return redirect()->route('dokter.daftarAntrian');
+        }
+
         return view('index');
-    })->name('index');
+    })->middleware('role:admin,dokter')->name('index');
+
+    // Hak Akses Dokter
+    Route::middleware(['role:dokter'])->group(function () {
+        Route::prefix('dokter')->group(function () {
+            Route::get('daftar-antrian', [DokterController::class, 'getKunjungan'])->name('dokter.daftarAntrian');
+        });
+
+        // Grouping Rekam Medis
+        Route::prefix('rekam-medis/')->group(function () {
+            Route::get('/', [RekamMedisController::class, 'index'])->name('rekamMedis.index');
+            Route::get('/{id}/create', [RekamMedisController::class, 'create'])->name('rekamMedis.create');
+            Route::post('/', [RekamMedisController::class, 'store'])->name('rekamMedis.store');
+            Route::patch('/{id}', [RekamMedisController::class, 'update'])->name('rekamMedis.patch');
+            Route::delete('/{id}', [RekamMedisController::class, 'destroy'])->name('rekamMedis.destroy');
+        });
+
+        // Grouping Profil
+        Route::prefix('profil')->group(function () {
+            Route::get('{userId}', [ProfilController::class, 'index'])->name('profile.index');
+        });
+    });
 
     // Hak Akses Admin
     Route::middleware(['role:admin'])->group(function () {
@@ -51,33 +82,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('dokter', DokterController::class);
         Route::resource('pasien', PasienController::class);
 
+        // Grouping Kunjungan (antrian)
+        Route::prefix('kunjungan/')->group(function () {
+            Route::get('/', [KunjunganController::class, 'index'])->name('kunjungan.index');
+            Route::get('/create', [KunjunganController::class, 'create'])->name('kunjungan.create');
+            Route::post('/', [KunjunganController::class, 'store'])->name('kunjungan.store');
+            Route::get('/antrian/{kunjungan}', [KunjunganController::class, 'showQueue'])->name('antrian.show');
+        });
+
         // Route::get('daftar-antrian/nik/{nik}', [AntrianController::class, 'getNikPasien'])->name('daftar-antrian.getNikPasien');
         // Route::resource('daftar-antrian', AntrianController::class);
-    });
-
-    // Hak Akses Dokter
-    Route::middleware(['role:admin'])->prefix('dokter')->group(function () {
-        Route::get('daftar-antrian', [DokterController::class, 'getKunjungan'])->name('daftar-kunjungan');
-    });
-    // Grouping Rekam Medis
-    Route::prefix('rekam-medis/')->group(function () {
-        Route::get('/', [RekamMedisController::class, 'index'])->name('rekamMedis.index');
-        Route::get('/{id}/create', [RekamMedisController::class, 'create'])->name('rekamMedis.create');
-        Route::post('/', [RekamMedisController::class, 'store'])->name('rekamMedis.store');
-        Route::patch('/{id}', [RekamMedisController::class, 'update'])->name('rekamMedis.patch');
-        Route::delete('/{id}', [RekamMedisController::class, 'destroy'])->name('rekamMedis.destroy');
-    });
-
-    // Grouping Kunjungan (antrian)
-    Route::prefix('kunjungan/')->group(function () {
-        Route::get('/', [KunjunganController::class, 'index'])->name('kunjungan.index');
-        Route::get('/create', [KunjunganController::class, 'create'])->name('kunjungan.create');
-        Route::post('/', [KunjunganController::class, 'store'])->name('kunjungan.store');
-        Route::get('/antrian/{kunjungan}', [KunjunganController::class, 'showQueue'])->name('antrian.show');
-    });
-
-    // Grouping Profil
-    Route::prefix('profil')->group(function () {
-        Route::get('{userId}', [ProfilController::class, 'index'])->name('profile.index');
     });
 });
