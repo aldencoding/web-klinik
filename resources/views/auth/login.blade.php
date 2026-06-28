@@ -4,7 +4,7 @@
     <div class="auth-wrapper v3">
         <div class="auth-form">
             <div class="auth-header">
-                <a href="#" class="h3">MY KLINIK</a>
+                <a href="#" class="h3 b-brand text-primary">Klinik Ceria</a>
             </div>
             <div class="card my-5">
                 <form action="{{ route('login.process') }}" method="post">
